@@ -1,1 +1,1 @@
-# 这是xinxiangsama用于学习cuda编程的仓库
+# 这是xinxiangsama用于学习cuda c++编程的仓库
