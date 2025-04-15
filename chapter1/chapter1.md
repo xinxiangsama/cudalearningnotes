@@ -141,3 +141,61 @@ simpleKernel<<<numBlocks, threadsPerBlock>>>(d_array);
 ```
 
 ### Stream
+CUDA 流就是在GPU上按顺序执行的操作序列。Streams 支持主机和设备之间的重叠计算和数据传输或多个内核执行。默认的流是 stream `0`。
+
+### Event
+事件用于统计每个cuda操作所消耗的时间，它们可以记录在工作流中的特定点，以标记执行区段的开始和结束。
+```c++
+cudaEvent_t start, stop; 
+cudaEventCreate(&start);
+cudaEventCreate(&stop);
+cudaEventRecord(start,0);
+
+//some operations
+
+cudaEventRecord(end,0);
+cudaEventSynchronize(stop);
+
+float elapsedTime;
+cudaEventElapsedTime(&elapsedTime, start, stop);
+```
+
+## Install CUDA Toolkit
+following:
+> https://developer.nvidia.com/cuda-downloads
+
+## Understanding CUDA Development Workflow
+写cuda代码的工作流程主要可以分为以下几步：
+1. **Code Design and Structuring** : 计划好代码哪部分适合并行化计算，设计好数据依赖和数据竞争。
+2. **Host and Device Code Separation**：设计好cpu端和gpu端执行的代码，最好分别储存设计。
+3. **Kernel Configuration** : 指定核函数的执行参数
+```c++
+int blocksize = 256;
+int numblocks = (N + blocksize - 1) / blocksize;
+myKernel<<<numBlocks, blockSize>>>(data);
+```
+4. **Memory Management**：cpu端和gpu端都需要申请内存，并且在需要时二者之间需要进行数据传输。CUDA 提供了一些API:`cudaMalloc`、`cudaFree`、`cudaMemcpy`等去管理内存。
+```c++
+*int N {32};
+int size = N * sizeof(int);
+int *h_data = new int[N];
+
+int *d_data;
+cudaMalloc((void**)&d_data, size);
+
+cudaMemcpy(d_data, h_data, size, cudaMemcpyHostToDevice);
+
+// Kernel execution
+myKernel<<<numBlocks, blockSize>>>(d_data);
+// Copy results back to host  
+cudaMemcpy(h_data, d_data, size, cudaMemcpyDeviceToHost);
+cudaFree(d_data);
+```
+
+5. **Kernel Launch**
+注意设备端和主机端代码执行是异步的，在合适的地方需要同步。
+
+6. **Debugging and Profiling**
+   - cuda-gdb 用于调试
+   - nvprof 用于分析
+![nvprof](./pictures/nvprof.png "nvprof")
