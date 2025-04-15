@@ -199,3 +199,5 @@ cudaFree(d_data);
    - cuda-gdb 用于调试
    - nvprof 用于分析
 ![nvprof](./pictures/nvprof.png "nvprof")
+
+## Brief Introduction to C++ Concepts for CUDA
